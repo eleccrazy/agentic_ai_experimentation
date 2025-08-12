@@ -16,5 +16,4 @@ load_dotenv()
 llm = ChatGroq(model="llama3-8b-8192")
 response = llm.invoke("Explain vector databases in one paragraph.")
 
-# The text you want is in the `.content` attribute:
 print(response.content)
