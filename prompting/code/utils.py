@@ -54,8 +54,6 @@ def load_yaml_config(file_path: Union[str, Path]) -> dict:
     """
     file_path = Path(file_path)
 
-    print(file_path.exists())
-
     # Check if file exists
     if not file_path.exists():
         raise FileNotFoundError(f"YAML config file not found: {file_path}")

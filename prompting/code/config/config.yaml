@@ -1,4 +1,4 @@
-llm: "gpt-4o-mini"
+llm: "gemini-1.5-flash"
 reasoning_strategies:
   CoT: |
     Use this systematic approach to provide your response:

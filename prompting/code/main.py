@@ -34,6 +34,7 @@ def invoke_llm(
         The LLM's response content, or None if an error occurs.
     """
     try:
+        print(model)
         llm = get_llm(model)
         message = HumanMessage(content=prompt)
         response = llm.invoke([message])
@@ -106,7 +107,7 @@ def main(prompt_config_key: str) -> None:
 
         print("Loading application configuration...")
         app_config = load_yaml_config(APP_CONFIG_FPATH)
-        model_name = app_config.get("llm", "gpt-4o-mini")
+        model_name = app_config.get("llm", "llama3-8b-8192")
         print(f"✓ Model set to: {model_name}")
 
         # Load the prompt configuration
@@ -140,6 +141,6 @@ if __name__ == "__main__":
 
     # Define the prompt configuration key to use
     # You can change this to any key defined in your `prompt_config.yaml` file.
-    prompt_cfg_key = "summarization_prompt_cfg5"
+    prompt_cfg_key = "summarization_prompt_cfg6"
 
     main(prompt_config_key=prompt_cfg_key)
