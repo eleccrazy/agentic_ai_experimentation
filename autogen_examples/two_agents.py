@@ -79,7 +79,7 @@ async def main():
 
     team = RoundRobinGroupChat(
         participants=[agent_senior, agent_newhire],
-        termination_condition=MaxMessageTermination(max_messages=8),
+        termination_condition=MaxMessageTermination(max_messages=6),
     )
 
     # Initial discussion prompt for the two SE agents
