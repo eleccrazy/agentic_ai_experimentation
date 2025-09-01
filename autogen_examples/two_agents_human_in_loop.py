@@ -6,6 +6,7 @@ from autogen_agentchat.conditions import TextMentionTermination
 from autogen_agentchat.teams import RoundRobinGroupChat
 from autogen_agentchat.ui import Console
 from autogen_ext.models.openai import OpenAIChatCompletionClient
+from autogen_ext.tools.mcp import McpWorkbench, StdioServerParams
 from dotenv import load_dotenv
 
 
@@ -41,33 +42,49 @@ async def main():
         api_key=api_key,
     )
 
-    # Define assistant agent (math tutor) with system instructions
-    agent = AssistantAgent(
-        name="MathTutor",
-        model_client=gemini_model_client,
-        system_message=(
-            "You are a helpful math tutor. Help the user solve math problems. "
-            "Keep your responses short and clear. "
-            "When the user says 'Thanks Done' or something similar, "
-            "acknowledge and say 'LESSON COMPLETED' to end the session."
-        ),
+    # Create an mcp server
+    fs_mcp_server_params = StdioServerParams(
+        command="npx",
+        args=[
+            "-y",
+            "@modelcontextprotocol/server-filesystem",
+            "/home/gizachew/main/ai/agentic_ai_experimentation/autogen_examples",
+        ],
+        read_timeout_secons=60,
     )
 
-    # Define a proxy agent that represents the student
-    user_proxy = UserProxyAgent(name="Student")
+    # Start the mcp server
+    fs_workbench = McpWorkbench(fs_mcp_server_params)
 
-    # Create a team chat where participants take turns (round-robin)
-    team = RoundRobinGroupChat(
-        participants=[user_proxy, agent],
-        termination_condition=TextMentionTermination("LESSON COMPLETED"),
-    )
+    async with fs_workbench as fs_wb:
 
-    # Run the interactive tutoring session in the console
-    await Console(
-        team.run_stream(
-            task="I need some help with multiplication. Can you solve this 3 + 7"
+        # Define assistant agent (math tutor) with system instructions
+        agent = AssistantAgent(
+            name="MathTutor",
+            model_client=gemini_model_client,
+            system_message=(
+                "You are a helpful math tutor. Help the user solve math problems. "
+                "Keep your responses short and clear. "
+                "You have access to file system. Feel free to create"
+                "files to help with student learning."
+                "When the user says 'Thanks Done' or something similar, "
+                "acknowledge and say 'LESSON COMPLETED' to end the session."
+            ),
         )
-    )
+
+        # Define a proxy agent that represents the student
+        user_proxy = UserProxyAgent(name="Student")
+
+        # Create a team chat where participants take turns (round-robin)
+        team = RoundRobinGroupChat(
+            participants=[user_proxy, agent],
+            termination_condition=TextMentionTermination("LESSON COMPLETED"),
+        )
+
+        # Run the interactive tutoring session in the console
+        await Console(team.run_stream(task="I need some help with multiplication."))
+
+    await gemini_model_client.close()
 
 
 if __name__ == "__main__":
