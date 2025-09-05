@@ -48,7 +48,7 @@ async def main():
         args=[
             "-y",
             "@modelcontextprotocol/server-filesystem",
-            "/home/gizachew/main/ai/agentic_ai_experimentation/autogen_examples",
+            "/home/gizachew/main/ai/agentic_ai_experimentation/autogen_examples/",
         ],
         read_timeout_secons=60,
     )
@@ -57,11 +57,11 @@ async def main():
     fs_workbench = McpWorkbench(fs_mcp_server_params)
 
     async with fs_workbench as fs_wb:
-
         # Define assistant agent (math tutor) with system instructions
         agent = AssistantAgent(
             name="MathTutor",
             model_client=gemini_model_client,
+            workbench=fs_wb,
             system_message=(
                 "You are a helpful math tutor. Help the user solve math problems. "
                 "Keep your responses short and clear. "
@@ -82,7 +82,11 @@ async def main():
         )
 
         # Run the interactive tutoring session in the console
-        await Console(team.run_stream(task="I need some help with multiplication."))
+        await Console(
+            team.run_stream(
+                task="I need some help with multiplication. You have access to the file system"
+            )
+        )
 
     await gemini_model_client.close()
 

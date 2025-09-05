@@ -18,7 +18,7 @@ reasoning_strategies:
 
     Then provide your final answer.
 
-  Self-Ask: |
+  SelfAsk: |
     Use this systematic approach to provide your response:
     1. Break the main question into smaller sub-questions.
     2. Answer each sub-question thoroughly.
