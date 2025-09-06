@@ -101,9 +101,39 @@ def customer_support_usecase_templating(llm: str) -> None:
     print("\nResponse:", response.content, "\n----------------")
 
 
+def simple_function_chaining(llm: str) -> None:
+    """
+    Demonstrates a basic example of function chaining with LangChain.
+
+    Workflow:
+        1. Define a `PromptTemplate` that asks for 3 product names from a given company.
+        2. Chain the prompt directly to the LLM model.
+        3. Invoke the chain with a specific company name (e.g., "Google").
+        4. Print the model’s response.
+
+    Args:
+        llm (str): The LLM model identifier (e.g., "gemini-1.5-flash").
+    """
+    model = get_llm(llm)
+
+    # Create a prompt template
+    prompt = PromptTemplate(
+        input_variables=["company"],
+        template="Give me 3 product names from the company {company}:",
+    )
+
+    # Create a chain by binding the prompt to the model
+    brand_chain = prompt | model
+
+    brands = brand_chain.invoke({"company": "Google"})
+
+    print("\nBrands:", brands.content, "\n----------------")
+
+
 if __name__ == "__main__":
     """
     Entry point for running the script.
     """
     # simple_templating("gemini-1.5-flash")
-    customer_support_usecase_templating("gemini-1.5-flash")
+    # customer_support_usecase_templating("gemini-1.5-flash")
+    simple_function_chaining("gemini-1.5-flash")
