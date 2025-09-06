@@ -8,6 +8,7 @@ Date: 06-09-2025
 """
 
 from dotenv import load_dotenv
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from llms import get_llm
 
@@ -103,31 +104,55 @@ def customer_support_usecase_templating(llm: str) -> None:
 
 def simple_function_chaining(llm: str) -> None:
     """
-    Demonstrates a basic example of function chaining with LangChain.
+    Demonstrates a multi-step function chaining example with LangChain.
 
     Workflow:
-        1. Define a `PromptTemplate` that asks for 3 product names from a given company.
-        2. Chain the prompt directly to the LLM model.
-        3. Invoke the chain with a specific company name (e.g., "Google").
-        4. Print the model’s response.
+        1. Define a prompt template (`product_prompt`) that generates 3 product
+           names from a given company.
+        2. Define another prompt template (`product_description_prompt`) that
+           produces a short description (max 5 words) for each product.
+        3. Use `StrOutputParser` to normalize outputs into strings.
+        4. Build chains:
+            - product_chain: company → products
+            - description_chain: product → short description
+        5. Combine them into `main_chain` to go from company → products → descriptions.
+        6. Invoke the chain with a sample company (Google) and print results.
 
     Args:
         llm (str): The LLM model identifier (e.g., "gemini-1.5-flash").
     """
     model = get_llm(llm)
 
-    # Create a prompt template
-    prompt = PromptTemplate(
+    # Create a prompt template for a product
+    product_prompt = PromptTemplate(
         input_variables=["company"],
         template="Give me 3 product names from the company {company}:",
     )
 
+    # Create prompt template for product descriptionnnn
+    product_description_prompt = PromptTemplate(
+        input_variables=["product"],
+        template="Can you tell me a short description about {product} in one sentence. Maximum 5 words.",
+    )
+
+    # Output parser to convert model output to string
+    output_parser = StrOutputParser()
+
     # Create a chain by binding the prompt to the model
-    brand_chain = prompt | model
+    product_chain = product_prompt | model | output_parser
 
-    brands = brand_chain.invoke({"company": "Google"})
+    description_chain = product_description_prompt | model | output_parser
 
-    print("\nBrands:", brands.content, "\n----------------")
+    # Define a function to create the combined input for the description chain
+    def create_description_input(output):
+        return {"product": output}
+
+    # Chain everything together
+    main_chain = product_chain | create_description_input | description_chain
+
+    result = main_chain.invoke({"company": "Google"})
+
+    print(result)
 
 
 if __name__ == "__main__":
