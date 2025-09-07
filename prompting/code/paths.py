@@ -22,3 +22,5 @@ OUTPUTS_DIR = os.path.join(ROOT_DIR, "outputs")
 
 DATA_DIR = os.path.join(ROOT_DIR, "data")
 PUBLICATION_FPATH = os.path.join(DATA_DIR, "publication.md")
+
+EMBEDDING_FPATH = os.path.join(DATA_DIR, "logfile.log")
