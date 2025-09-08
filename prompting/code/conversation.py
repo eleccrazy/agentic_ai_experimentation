@@ -1,29 +1,32 @@
 """
 File: conversation.py
 Description:
-    This module demonstrates a simple conversational example using LangChain LLMs.
-    It shows how to send system and human messages to the model, optionally
-    using the content of a publication as context for the conversation.
+    This module demonstrates a conversational example using LangChain LLMs
+    with publication context and follow-up functionality (f.f). It shows how
+    to maintain conversation history so the AI can answer follow-up questions
+    naturally.
 
 Author: Gizachew Kassa
 Date: 08/09/2025
 """
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from llms import get_llm
 from utils import load_publication
 
 
 def basic_question(model: str) -> None:
     """
-    Sends a publication-contextualized question to the LLM and prints the response.
+    Sends publication-contextualized questions to the LLM and prints responses,
+    demonstrating follow-up capability.
 
     Workflow:
         1. Load the specified LLM model.
         2. Load publication content using `load_publication()`.
-        3. Define a conversation with a system message and a human message
-           that includes the publication content as context.
-        4. Invoke the LLM and print its response.
+        3. Initialize conversation with a system message containing the publication.
+        4. Send a first human question and print the AI's response.
+        5. Add the AI response to conversation history.
+        6. Send a follow-up human question; AI uses prior context to answer naturally.
 
     Args:
         model (str): The LLM model identifier (e.g., "gemini-1.5-flash").
@@ -33,28 +36,58 @@ def basic_question(model: str) -> None:
     # Load the content of the publication for context
     publication_content = load_publication()
 
-    # Define conversation messages
-    messages = [
-        SystemMessage(content="You are a helpful AI assistant."),
-        HumanMessage(
+    # Initialize conversation with publication context
+    conversation = [
+        SystemMessage(
             content=f"""
-            Based on this publication: {publication_content}
+You are a helpful AI assistant discussing a research publication.
+Base your answers only on this publication content:
 
-            What are variational autoencoders and list the top 5 applications for them as discussed in this publication.
-            """
-        ),
+{publication_content}
+"""
+        )
     ]
 
-    # Invoke the model and print the response
-    response = llm.invoke(messages)
-    print(response.content)
+    # User question 1
+    conversation.append(
+        HumanMessage(
+            content="""
+What are variational autoencoders and list the top 5 applications for them as discussed in this publication.
+"""
+        )
+    )
+
+    # AI response to first question
+    response1 = llm.invoke(conversation)
+    print("AI Response to Question 1:")
+    print(response1.content)
+    print("\n" + "=" * 50 + "\n")
+
+    # Add AI response to conversation history (f.f)
+    conversation.append(AIMessage(content=response1.content))
+
+    # User question 2 (follow-up)
+    conversation.append(
+        HumanMessage(
+            content="""
+How does it work in case of anomaly detection?
+"""
+        )
+    )
+
+    # AI response to follow-up question
+    response2 = llm.invoke(conversation)
+    print("AI Response to Question 2 (Follow-up):")
+    print(response2.content)
 
 
 if __name__ == "__main__":
     """
     Entry point for running the demo.
 
-    Demonstrates sending a publication-contextualized question to the LLM
-    using the `basic_question` function with the "gemini-1.5-flash" model.
+    Demonstrates:
+        - Sending publication-contextualized questions to the LLM.
+        - Maintaining conversation history for follow-up questions.
+        - Using the `basic_question` function with the "gemini-1.5-flash" model.
     """
     basic_question("gemini-1.5-flash")
